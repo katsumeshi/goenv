@@ -4,6 +4,18 @@ services:
     build: .
     volumes:
      - .:/app
-    # command: fresh /go
     ports:
       - "8080:8080"
+
+  db:
+   image: mysql:5.7
+   volumes:
+     - ./db:/var/lib/mysql
+   restart: always
+   environment:
+#     MYSQL_ROOT_PASSWORD: secret
+#     MYSQL_DATABASE: wordpress
+     MYSQL_USER: root
+#     MYSQL_PASSWORD: secret
+   ports:
+     - "3306:3306"
