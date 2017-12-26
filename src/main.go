@@ -1,4 +1,4 @@
-package main
+package src
 
 import(
   "net/http"
@@ -63,65 +63,70 @@ func postImage(c *gin.Context) {
 
 func convertBase64ToImage(b64 string) {
 
-	dataIndex := strings.Index(b64, ",")
-	dataIndex++
-
+	dataIndex := strings.Index(b64, ",") + 1
 	unbased, err := base64.StdEncoding.DecodeString(b64[dataIndex:])
+	if err != nil {
+		panic("Bad base64 data")
+	}
+
+	index := strings.Index(b64, ",")
+	switch strings.TrimSuffix(b64[5:index], ";base64") {
+	case "image/png":
+		convertBase64ToPng(unbased)
+	case "image/jpeg":
+		convertBase64ToJpeg(unbased)
+	case "image/gif":
+		convertBase64ToGif(unbased)
+	}
+}
+
+func convertBase64ToPng(unbased []byte) {
+	f, err := os.Create("./storage/test.png")
+	if err != nil {
+		panic("Cannot create png file")
+	}
+
+	img, err := png.Decode(bytes.NewReader(unbased))
+	png.Encode(f, img)
 	if err != nil {
 		panic("Bad png")
 	}
 
-	coI := strings.Index(b64, ",")
+	f.Close()
+}
 
-	//fmt.Print(strings.TrimSuffix(b64[5:coI], ";base64"))
-	switch strings.TrimSuffix(b64[5:coI], ";base64") {
-	case "image/png":
-		f, err := os.Create("./test.png")
-		if err != nil {
-			panic("Cannot create file")
-		}
-
-		pngI, err := png.Decode(bytes.NewReader(unbased))
-		png.Encode(f, pngI)
-		if err != nil {
-			panic("Bad png")
-		}
-
-		f.Close()
-	case "image/jpeg":
-		f, err := os.Create("./test.jpg")
-		if err != nil {
-			panic("Cannot create file")
-		}
-
-		jpgI, err := jpeg.Decode(bytes.NewReader(unbased))
-		var opt jpeg.Options
-		opt.Quality = 80
-
-		jpeg.Encode(f, jpgI, &opt)
-		if err != nil {
-			panic("Bad png")
-		}
-
-		f.Close()
-
-	case "image/gif":
-		f, err := os.Create("./test.gif")
-		if err != nil {
-			panic("Cannot create file")
-		}
-
-		img, err := gif.DecodeAll(bytes.NewReader(unbased))
-		var opt gif.Options
-		opt.NumColors = 256
-
-		gif.EncodeAll(f, img)
-		if err != nil {
-			panic("Bad png")
-		}
-
-		f.Close()
+func convertBase64ToJpeg(unbased []byte) {
+	f, err := os.Create("./storage/test.jpg")
+	if err != nil {
+		panic("Cannot create jpg file")
 	}
 
+	img, err := jpeg.Decode(bytes.NewReader(unbased))
+	var opt jpeg.Options
+	opt.Quality = 80
 
+	jpeg.Encode(f, img, &opt)
+	if err != nil {
+		panic("Bad jpg")
+	}
+
+	f.Close()
+}
+
+func convertBase64ToGif(unbased []byte) {
+	f, err := os.Create("./storage/test.gif")
+	if err != nil {
+		panic("Cannot create file")
+	}
+
+	img, err := gif.DecodeAll(bytes.NewReader(unbased))
+	var opt gif.Options
+	opt.NumColors = 256
+
+	gif.EncodeAll(f, img)
+	if err != nil {
+		panic("Bad png")
+	}
+
+	f.Close()
 }

@@ -1,3 +1,5 @@
 .idea/
 db/*
 tmp/
+log/
+storage/
