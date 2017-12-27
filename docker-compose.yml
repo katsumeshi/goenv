@@ -17,8 +17,8 @@ services:
     app:
       build: .
       volumes:
-        - .:/app
-        - ./store:/store
+        - ./src:/app
+        - ./storage:/storage
       ports:
         - "8080"
 

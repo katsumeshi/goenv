@@ -1,7 +1,7 @@
 FROM golang:latest
 
 WORKDIR /app
-ADD . /app
+ADD ./src /app
 
 
 RUN go get -u github.com/gin-gonic/gin
