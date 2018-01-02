@@ -1,8 +1,9 @@
 package main
 
 import (
-	"testing"
 	"os"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -34,12 +35,13 @@ func TestConvertBase64Fail(t *testing.T) {
 	err := convertBase64ToImage("data:image/gif;base64,aaa")
 	assert.NotNil(t, err)
 
-
 	err1 := convertBase64ToImage("aaa")
 	assert.NotNil(t, err1)
 
-
 	err2 := convertBase64ToImage(",,,")
 	assert.NotNil(t, err2)
+
+	err3 := convertBase64ToImage("")
+	assert.NotNil(t, err3)
 
 }

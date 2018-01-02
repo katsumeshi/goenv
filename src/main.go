@@ -1,41 +1,46 @@
 package main
 
-import(
-  "net/http"
-  "path/filepath"
-  "sync"
-  "text/template"
-  "github.com/gin-gonic/gin"
+import (
 	"bytes"
-	"image/png"
-	"os"
-	"strings"
+	"fmt"
 	"image/jpeg"
+	"image/png"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
+	"sync"
+	"text/template"
 
-	"image/gif"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+
 	"encoding/base64"
 	"errors"
+	"image/gif"
 )
 
 type templateHandler struct {
-  once sync.Once
-  filename string
-  templ *template.Template
+	once     sync.Once
+	filename string
+	templ    *template.Template
 }
 
 type Image struct {
-	Base64     string `form:"base64" json:"base64" binding:"required"`
+	Base64 string `form:"base64" json:"base64" binding:"required"`
 }
 
 func (t *templateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-  t.once.Do(func() {
-    t.templ = template.Must(template.ParseFiles(filepath.Join("templates", t.filename)))
-  })
-  t.templ.Execute(w, nil)
+	t.once.Do(func() {
+		t.templ = template.Must(template.ParseFiles(filepath.Join("templates", t.filename)))
+	})
+	t.templ.Execute(w, nil)
 }
 
 func main() {
 	r := gin.Default()
+	r.Use(cors.Default())
+
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "1121",
@@ -60,6 +65,8 @@ func postImage(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err1.Error()})
 		}
 	} else {
+		name := c.Param("base64")
+		fmt.Println(name)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 }
@@ -68,8 +75,8 @@ func convertBase64ToImage(b64 string) error {
 
 	index := strings.Index(b64, ",")
 
-	if (5 > len(b64) || index == -1) {
-		return errors.New("invalid base64 strings") 
+	if 5 > len(b64) || index == -1 {
+		return errors.New("invalid base64 strings")
 	}
 
 	dataIndex := index + 1
@@ -78,12 +85,12 @@ func convertBase64ToImage(b64 string) error {
 		return err
 	}
 	switch strings.TrimSuffix(b64[5:index], ";base64") {
-		case "image/png":
-			return convertBase64ToPng(unbased)
-		case "image/jpeg":
-			return convertBase64ToJpeg(unbased)
-		case "image/gif":
-			return convertBase64ToGif(unbased)
+	case "image/png":
+		return convertBase64ToPng(unbased)
+	case "image/jpeg":
+		return convertBase64ToJpeg(unbased)
+	case "image/gif":
+		return convertBase64ToGif(unbased)
 	}
 	return errors.New("can't convert base64")
 }
